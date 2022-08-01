@@ -1,50 +1,63 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-
+// {AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${RESPONSE_TYPE}&scope=${SCOPE}
 const CLIENT_ID = "e5f96b95f0c94cc1873b1f36b6e4d1b1";
-const REDIRECT_URI = "http://localhost:3001";
+const REDIRECT_URI = "http://localhost:3000";
 const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
 const RESPONSE_TYPE = "token";
+const SCOPE =
+  "ugc-image-upload user-follow-read playlist-read-private user-top-read playlist-read-collaborative user-follow-read";
 function App() {
   const [searchKey, setSearchKey] = useState("");
   const [artists, setArtists] = useState([]);
-  const [token, setToken] = useState("");
+  const [token, setToken] = useState(
+    "BQADMtqNKHEmlWQ6JIdSAs6LkBqzUDdJQ2_hN0usQl4a--WWpQ8qcvGMcUC6c9R57_YTtbUdVOTzNr777x8WxSNPSzPvNjoCBM0Oa2T0SyX-sVrKM3mLt7BDSJQpAoeiha3iqp1JsD5eURhn43dX3PUi5DEzET-ikXip91vX-jdtSm4VVG4luoZgISrl_B3LnWYXEa_njzR5wln3AWZw-AUMn7bU5ozB"
+  );
 
-  //!get user data from spotify
+  //!get user data from spotifyhttps://api.spotify.com/v1/browse/featured-playlists
   // https://api.spotify.com/v1/me
-  const user_account = async (access_token) => {
+  // https://api.spotify.com/v1/me/playlists
+  // https://api.spotify.com/v1/me/top/artists  !! no data
+  // https://api.spotify.com/v1/me/top/tracks  !!no data
+  // https://api.spotify.com/v1/browse/featured-playlists
+  const user_account = async () => {
     const user = await axios
-      .get("https://api.spotify.com/v1/browse/featured-playlists", {
+      .get("https://api.spotify.com/v1/me", {
         headers: {
-          Authorization: "Bearer " + access_token,
+          Authorization: `Bearer ${token}`,
         },
       })
       .then((response) => {
         // Return the full details of the user.
+        console.log(response);
         return response;
       })
       .catch((err) => {
         console.log("error");
       });
     console.log(user);
+    setArtists(user.data.items);
+    console.log(artists);
+
     return user;
   };
 
   //!get artists
-  const searchArtists = async (e) => {
-    e.preventDefault();
-    const { data } = await axios.get("https://api.spotify.com/v1/search", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      params: {
-        q: searchKey,
-        type: "artist",
-      },
-    });
-    console.log(data);
-    setArtists(data.artists.items);
-  };
+  // const searchArtists = (e) => {
+  //   e.preventDefault();
+  //   const { data } = axios.get("https://api.spotify.com/v1/me", {
+  //     headers: {
+  //       Authorization: `Bearer ${token}`,
+  //     },
+  //     // ,
+  //     // params: {
+  //     //   q: searchKey,
+  //     //   type: "artist",
+  //     // },
+  //   });
+  //   console.log(data);
+  //   // setArtists(data.artists.items);
+  // };
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -62,7 +75,7 @@ function App() {
     }
 
     setToken(token);
-    console.log(token);
+    user_account();
   }, []);
 
   const renderArtists = () => {
@@ -81,16 +94,17 @@ function App() {
     <div>
       <h1>Spotify</h1>
       <a
-        href={`${AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${RESPONSE_TYPE}`}
+        href={`${AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${RESPONSE_TYPE}&scope=${SCOPE}`}
       >
         Login to Spotify
       </a>
-      <form onSubmit={searchArtists}>
+      <form>
         <input type="text" onChange={(e) => setSearchKey(e.target.value)} />
         <button type={"submit"}>Search</button>
       </form>
+      <button>clickme</button>
 
-      <div>{JSON.stringify(user_account(token))}</div>
+      <div></div>
     </div>
   );
 }
