@@ -6,13 +6,18 @@ const REDIRECT_URI = "http://localhost:3000";
 const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
 const RESPONSE_TYPE = "token";
 const SCOPE =
-  "ugc-image-upload user-follow-read playlist-read-private user-top-read playlist-read-collaborative user-follow-read";
+  "ugc-image-upload user-follow-read playlist-read-private user-top-read playlist-read-collaborative user-follow-read user-read-recently-played";
 function App() {
   const [searchKey, setSearchKey] = useState("");
+  let [user, setUser] = useState(null);
+  let [playlists, setPlaylists] = useState([]);
+  let [topArtists, setTopArtists] = useState([]);
+  let [topTracks, setTopTracks] = useState([]);
+  let [featuredPlaylists, setFeaturedPlaylists] = useState([]);
+  let [recentlyPlayed, setRecentlyPlayed] = useState([]);
+
   const [artists, setArtists] = useState([]);
-  const [token, setToken] = useState(
-    "BQADMtqNKHEmlWQ6JIdSAs6LkBqzUDdJQ2_hN0usQl4a--WWpQ8qcvGMcUC6c9R57_YTtbUdVOTzNr777x8WxSNPSzPvNjoCBM0Oa2T0SyX-sVrKM3mLt7BDSJQpAoeiha3iqp1JsD5eURhn43dX3PUi5DEzET-ikXip91vX-jdtSm4VVG4luoZgISrl_B3LnWYXEa_njzR5wln3AWZw-AUMn7bU5ozB"
-  );
+  const [token, setToken] = useState("");
 
   //!get user data from spotifyhttps://api.spotify.com/v1/browse/featured-playlists
   // https://api.spotify.com/v1/me
@@ -20,9 +25,10 @@ function App() {
   // https://api.spotify.com/v1/me/top/artists  !! no data
   // https://api.spotify.com/v1/me/top/tracks  !!no data
   // https://api.spotify.com/v1/browse/featured-playlists
-  const user_account = async () => {
-    const user = await axios
-      .get("https://api.spotify.com/v1/me", {
+  // https://api.spotify.com/v1/me/player/recently-played
+  const user_account = async (token) => {
+    const recentyData = await axios
+      .get("https://api.spotify.com/v1/me/player/recently-played", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -32,12 +38,91 @@ function App() {
         console.log(response);
         return response;
       })
+
       .catch((err) => {
         console.log("error");
       });
-    console.log(user);
-    setArtists(user.data.items);
-    console.log(artists);
+    setRecentlyPlayed(recentyData.data);
+    const playlistData = await axios
+      .get("https://api.spotify.com/v1/me/playlists", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        // Return the full details of the user.
+        console.log(response);
+        return response;
+      })
+
+      .catch((err) => {
+        console.log("error");
+      });
+    setPlaylists(playlistData.data.data);
+    const topArtistsData = await axios
+      .get("https://api.spotify.com/v1/me/top/artists", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        // Return the full details of the user.
+        console.log(response);
+        return response;
+      })
+
+      .catch((err) => {
+        console.log("error");
+      });
+    setTopArtists(topArtistsData.data);
+    const topTrackData = await axios
+      .get("https://api.spotify.com/v1/me/top/tracks", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        // Return the full details of the user.
+        console.log(response);
+        return response;
+      })
+
+      .catch((err) => {
+        console.log("error");
+      });
+    setTopTracks(topTrackData.data);
+    const user = await axios
+      .get("https://api.spotify.com/v1/me/player/recently-played", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        // Return the full details of the user.
+        console.log(response);
+        return response;
+      })
+
+      .catch((err) => {
+        console.log("error");
+      });
+    setArtists(user.data);
+    const featuredData = await axios
+      .get("https://api.spotify.com/v1/me/player/recently-played", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        // Return the full details of the user.
+        console.log(response);
+        return response;
+      })
+
+      .catch((err) => {
+        console.log("error");
+      });
+    setFeaturedPlaylists(featuredData.data);
 
     return user;
   };
@@ -75,7 +160,7 @@ function App() {
     }
 
     setToken(token);
-    user_account();
+    user_account(token);
   }, []);
 
   const renderArtists = () => {
@@ -102,9 +187,26 @@ function App() {
         <input type="text" onChange={(e) => setSearchKey(e.target.value)} />
         <button type={"submit"}>Search</button>
       </form>
-      <button>clickme</button>
+      <button
+        onClick={(e) => {
+          user_account();
+        }}
+      >
+        click
+      </button>
 
-      <div></div>
+      <h1>Artists</h1>
+      <div>{JSON.stringify(artists)}</div>
+      <h1>Playlists</h1>
+      <div>{JSON.stringify(playlists)}</div>
+      <h1>topArtists</h1>
+      <div>{JSON.stringify(topArtists)}</div>
+      <h1>topTracks</h1>
+      <div>{JSON.stringify(topTracks)}</div>
+      <h1>featuredPlaylists</h1>
+      <div>{JSON.stringify(featuredPlaylists)}</div>
+      <h1>recentlyPlayed</h1>
+      <div>{JSON.stringify(recentlyPlayed)}</div>
     </div>
   );
 }
